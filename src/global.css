@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html {
+    height: 100%;
+  }
+  
+  body {
+    height: 100%;
+  }
+  #app{
+    height: 100%;
+  }
+:root {
+    --video-height-container: 0px;
+}
+
+.videoPlaylistContainer{
+    height: var(--video-height-container);
+}
+
+@media only screen and (max-width: 1024px)   {
+    .videoPlaylistContainer{
+        height: 100% !important;
+    }
+}
+.videoSection{
+    height: calc( 100% - 40px);
+    overflow: auto;
+ 
+}
+
+    @media only screen and (max-width: 1024px)   {
+        .videoPlayList{
+        height: calc(100% - var(--video-height-container));
+        }
+    }
+
+
+.app-bg {
+    background: linear-gradient(to right,rgba(245,245,245,.8),rgba(245,245,245,.8));
+    background-position: center;
+}
+
+.backdrop-header {
+    box-shadow: 0 10px 100px rgba(0,0,0,.1);
+}
+
+.videoContainer video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    box-shadow: 1px 2px 6px 3px rgba(0,0,0,.1);
+} 
+
+.play-pause-button{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
