@@ -1,6 +1,10 @@
 
-import numberEmptyCheck from './numberEmptyCheck'
 const mapFormatTime = new Map();
+/**
+ * convert given seconds into minutes,seconds, seconds, hours
+ * @param {Number} timeInSeconds 
+ * @returns 
+ */
 export default function formatTime(timeInSeconds = 0) {
   if (mapFormatTime.has(timeInSeconds)) return mapFormatTime.get(timeInSeconds);
 

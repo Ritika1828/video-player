@@ -1,18 +1,22 @@
-import React, { useEffect, useState, useRef } from "react";
-import  throttle from "lodash/throttle";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import VideoControls from "./VideoControls";
 import Loader from "../shared/Loader";
 import PlayPauseAnimatedButton from "./PlayPauseAnimatedButton";
 import { DEFAULT_PLAYBACK_SPEED } from "../constant/videoControl";
+import { localStorageSave } from "../utils/storage";
 import { useDeviceInfo } from "../customHook/useDeviceInfo";
+import  throttle  from "lodash/throttle";
+import PropTypes from "prop-types";
 
 function VideoPlayer({
   videoUrl,
   id,
-  thumb = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
+  thumb,
   handleNextVideoPlay,
+  seekAt = null,
 }) {
   const videoRef = useRef(null);
+  const videoContainerRef = useRef(null);
   const [videoLoading, setVideoLoading] = useState(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [showVideoControl, setShowVideoControl] = useState(false);
@@ -24,21 +28,33 @@ function VideoPlayer({
     DEFAULT_PLAYBACK_SPEED
   );
   const [seekProgress, setSeekProgress] = useState(0);
+  const [volumeProgress, setVolumeProgress] = useState(0);
   const [videoEnded, setVideoEnded] = useState(false);
   const [isTouchActivated, setIsTouchActivated] = useState(false);
   const [isDisableClick, setDisableClick] = useState(true);
+  const [videoVolume, setVideoVolume] = useState(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const { isMobile } = useDeviceInfo();
 
-  const handlePlayPause = () => {
+  /**
+   * function used to toggle b/w play/pause of video
+   */
+  const handlePlayPause = useCallback(() => {
     setShowPlayAnimation(true);
-    if (isVideoPlaying) {
-      videoRef.current.pause();
-    } else {
+    if (isVideoPaused()) {
       videoRef.current.play();
+      setIsVideoPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setIsVideoPlaying(false);
     }
-    setIsVideoPlaying(!isVideoPlaying);
-  };
+  }, [videoRef.current]);
 
+  /**
+   * function used to update the slider progress and video current running time
+   * @param {Number} percent
+   * @param {Boolean} isDragged
+   */
   const updateSeek = (percent, isDragged) => {
     setSeekProgress(percent);
     if (isDragged) {
@@ -47,17 +63,25 @@ function VideoPlayer({
     }
   };
 
+  /**
+   * function used to set the total video play duration
+   */
   const handleDurationChange = () => {
     const videoPlayer = videoRef.current;
     setTotalVideoDuration(videoPlayer.duration);
   };
 
+  /**
+   *  function used to set the video current running time
+   */
   const handleTimeUpdate = () => {
     const videoPlayer = videoRef.current;
-
     setVideoCurrentTime(videoPlayer.currentTime);
   };
 
+  /**
+   * function used to set the progress of buffered video stream.
+   */
   const handleProgress = () => {
     const videoPlayer = videoRef.current;
     let bufferedEnd = 0;
@@ -67,15 +91,21 @@ function VideoPlayer({
     setVideoBufferedTime(bufferedEnd);
   };
 
-  const handlePlayBack = (val) => {
-    setVideoPlayBackRate(val);
-    videoRef.current.playbackRate = val.multiplier;
-  };
+  /**
+   *  function used to set the playback video rate
+   * @param {Number} val
+   */
+  const handlePlayBack = useCallback(
+    (val) => {
+      setVideoPlayBackRate(val);
+      videoRef.current.playbackRate = val.multiplier;
+    },
+    [videoRef.current]
+  );
 
-  const resetUpdateSeek = () => {
-    setSeekProgress(0);
-  };
-
+  /**
+   * function used to set the currentTime of video on mouseEnd
+   */
   const updateVideoCurrentTime = () => {
     if (videoRef.current) {
       videoRef.current.play();
@@ -83,15 +113,27 @@ function VideoPlayer({
     }
   };
 
-  const handleVideoWaiting = () => {
+  /**
+   * function used to handle the video loading state
+   */
+  const handleVideoWaiting = useCallback(() => {
     setVideoLoading(true);
-  };
+  }, [videoRef.current]);
+
+  /**
+   * check weather video is paused or not.
+   * @returns - Boolean
+   */
 
   const isVideoPaused = () => {
     if (videoRef.current)
       return videoRef.current.paused || videoRef.current.ended;
   };
 
+  /**
+   * function used to hide the video control
+   * @returns
+   */
   const handleHideControl = () => {
     if (isVideoPaused()) {
       return;
@@ -99,9 +141,116 @@ function VideoPlayer({
     setShowVideoControl(false);
   };
 
-  const vidEnded = () => {
+  /**
+   * function used to set state when  video is  Ended
+   */
+  const vidEnded = useCallback(() => {
     setVideoEnded(true);
+  }, [videoRef.current]);
+
+  /**
+   * function used to update the slider progress and update video volume
+   * @param {Number} percent
+   * @param {Boolean} isDragged
+   */
+  const updateVideoVolumeProgress = (percent, isDragged) => {
+    setVolumeProgress(percent);
+    if (isDragged) {
+      setVideoVolume(percent / 100);
+    }
   };
+
+  /**
+   * function used to update video volume on mouse End Event
+   */
+
+  const updateVideoVolume = () => {
+    videoRef.current.volume = volumeProgress / 100;
+    setVideoVolume(volumeProgress / 100);
+  };
+
+  /**
+   * function used to toggle b/w  normal and full screen
+   */
+  function toggleFullScreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (document.webkitFullscreenElement) {
+      document.webkitExitFullscreen();
+    } else if (
+      videoContainerRef.current &&
+      videoContainerRef.current.webkitRequestFullscreen
+    ) {
+      videoContainerRef.current.requestFullscreen();
+      videoContainerRef.current &&
+        videoContainerRef.current.webkitRequestFullscreen();
+    } else {
+      videoContainerRef.current &&
+        videoContainerRef.current.requestFullscreen();
+    }
+  }
+
+  /**
+   * function used to toggle b/w muted and unmuted video
+   */
+  const toggleVolumeState = () => {
+    if (videoRef.current.volume == 0) {
+      videoRef.current.volume = 1;
+      setVideoVolume(1);
+    } else {
+      videoRef.current.volume = 0;
+      setVideoVolume(0);
+    }
+  };
+
+  /**
+   * function used to handle some keyboardEvent
+   */
+  function keyboardShortcuts(event) {
+    const { key } = event;
+    setShowVideoControl(true);
+    switch (key) {
+      case "k":
+        handlePlayPause();
+        break;
+      case "m":
+        toggleVolumeState();
+        break;
+      case "f":
+        toggleFullScreen();
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * function used to call to set the current video state on browser close
+   */
+  const handleBeforeUnload = () => {
+    if (videoRef.current) {
+      const selectedVideo = localStorageSave("currentVideoPlayed");
+      localStorageSave("currentVideoPlayed", {
+        ...selectedVideo,
+        seekAt: videoRef.current.currentTime,
+      });
+    }
+  };
+  /**
+   * function used to toggle b/w video full scrren changed state
+   */
+  const fullscreenchanged = () => {
+    if (document.fullscreenElement) {
+      setIsFullScreen(true);
+    } else {
+      setIsFullScreen(false);
+    }
+  };
+
+  const handleVideoPlay = useCallback(() => {
+    setIsVideoPlaying(true);
+    setVideoLoading(false);
+  }, [videoRef.current]);
 
   const updateVideoSize = () => {
     if (videoRef.current) {
@@ -116,11 +265,11 @@ function VideoPlayer({
     const throttledUpdateLayout = throttle(updateVideoSize, 100);
     updateVideoSize();
     window.addEventListener("resize", throttledUpdateLayout);
-
     return () => {
       window.removeEventListener("resize", throttledUpdateLayout);
     };
   }, []);
+
   useEffect(() => {
     let timeOut = null;
     if (videoEnded) {
@@ -145,27 +294,34 @@ function VideoPlayer({
       videoPlayer.addEventListener("contextmenu", (e) => {
         e.preventDefault();
       });
-
-      videoPlayer.addEventListener("play", () => {
-        setIsVideoPlaying(true);
-        setVideoLoading(false);
-      });
+      if (localStorageSave("videoVolume") != null) {
+        videoPlayer.volume = Number(localStorageSave("videoVolume"));
+        setVideoVolume(Number(localStorageSave("videoVolume")));
+      } else {
+        videoPlayer.volume = 1;
+        setVideoVolume(1);
+      }
+      if (seekAt) {
+        videoRef.current.currentTime = seekAt;
+      }
+      videoPlayer.addEventListener("play", handleVideoPlay);
       videoPlayer.addEventListener("durationchange", handleDurationChange);
       videoPlayer.addEventListener("timeupdate", handleTimeUpdate);
       videoPlayer.addEventListener("progress", handleProgress);
       videoPlayer.addEventListener("waiting", handleVideoWaiting);
-      videoPlayer.addEventListener("playing", () => {
-        setVideoLoading(false);
-        setIsVideoPlaying(true);
-      });
+      videoPlayer.addEventListener("playing", handleVideoPlay);
       videoPlayer.addEventListener("ended", vidEnded);
+      window.addEventListener("beforeunload", handleBeforeUnload);
     }
     return () => {
+      videoPlayer.removeEventListener("play", handleVideoPlay);
       videoPlayer.removeEventListener("durationchange", handleDurationChange);
       videoPlayer.removeEventListener("timeupdate", handleTimeUpdate);
       videoPlayer.removeEventListener("progress", handleProgress);
-      videoPlayer.addEventListener("waiting", handleVideoWaiting);
-      videoPlayer.addEventListener("ended", vidEnded);
+      videoPlayer.removeEventListener("waiting", handleVideoWaiting);
+      videoPlayer.addEventListener("playing", handleVideoPlay);
+      videoPlayer.removeEventListener("ended", vidEnded);
+      window.addEventListener("beforeunload", handleBeforeUnload);
     };
   }, [videoUrl, videoRef.current]);
 
@@ -174,7 +330,7 @@ function VideoPlayer({
     if (!isTouchActivated && isMobile) {
       timeOut = setTimeout(() => {
         handleHideControl();
-      }, 3000);
+      }, 5000);
     }
     return () => {
       clearTimeout(timeOut);
@@ -187,9 +343,27 @@ function VideoPlayer({
     }
   }, [showVideoControl, isMobile]);
 
+  useEffect(() => {
+    console.log(videoVolume, "videoVolume");
+    if (videoVolume != null) {
+      localStorageSave("videoVolume", videoVolume);
+    }
+  }, [videoVolume]);
+
+  useEffect(() => {
+    document.addEventListener("keyup", keyboardShortcuts);
+    document.addEventListener("fullscreenchange", fullscreenchanged);
+
+    return () => {
+      document.removeEventListener("keyup", keyboardShortcuts);
+      document.removeEventListener("fullscreenchange", fullscreenchanged);
+    };
+  }, []);
+
   return (
     <div
       className="videoContainer video-relative video-w-full video-aspect-video"
+      ref={videoContainerRef}
       onMouseEnter={() => setShowVideoControl(true)}
       onMouseLeave={handleHideControl}
       onTouchStart={() => {
@@ -246,10 +420,15 @@ function VideoPlayer({
                 updateSeek={updateSeek}
                 handlePlayBack={handlePlayBack}
                 seekProgress={seekProgress}
-                resetUpdateSeek={resetUpdateSeek}
                 updateVideoCurrentTime={updateVideoCurrentTime}
                 isVideoPlaying={isVideoPlaying}
                 togglePlay={handlePlayPause}
+                videoVolume={videoVolume}
+                updateVideoVolumeProgress={updateVideoVolumeProgress}
+                updateVideoVolume={updateVideoVolume}
+                toggleVolumeState={toggleVolumeState}
+                isFullScreen={isFullScreen}
+                toggleFullScreen={toggleFullScreen}
               />
             </div>
             <div></div>
@@ -266,5 +445,12 @@ function VideoPlayer({
   );
 }
 
+VideoPlayer.propTypes = {
+  videoUrl: PropTypes.string, // video url
+  id: PropTypes.string || PropTypes.number, // video id
+  thumb: PropTypes.string, // video thumbnail url
+  handleNextVideoPlay: PropTypes.func, // hnadler to play the next video
+  seekAt: PropTypes.number, // video starting time on ready state
+};
 
 export default VideoPlayer;

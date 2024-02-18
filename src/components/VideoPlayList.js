@@ -14,7 +14,11 @@ function VideoPlayList({items, handleOrderItemList, selectedID, handleItemClick}
 
   const listRef = useRef(null);
 
-
+ /**
+  * function called when item drag is comleted
+  * @param {Object} res 
+  * @returns 
+  */
   const onDragEnd = (res) => {
     if (!res.destination) {
       return;
@@ -29,6 +33,12 @@ function VideoPlayList({items, handleOrderItemList, selectedID, handleItemClick}
     handleOrderItemList(reOrderItems)
 
   }
+
+  /**
+   * function used to change the background when  drag is over 
+   * @param {Boolean} isDraggingOver 
+   * @returns 
+   */
 
   const getScrollBg = (isDraggingOver) => {
     return isDraggingOver ? ' video-bg-slate-200 ': ' video-bg-white'
@@ -96,6 +106,11 @@ function VideoPlayList({items, handleOrderItemList, selectedID, handleItemClick}
   )
 }
 
-VideoPlayList.propTypes = {}
+VideoPlayList.propTypes = {
+  items: PropTypes.array,  // list of video items
+  handleOrderItemList : PropTypes.func, // handler used to reorder the given list 
+  selectedID: PropTypes.string || PropTypes.number, // video id 
+  handleItemClick: PropTypes.func, // handler used to give on which item is clicked
+}
 
 export default VideoPlayList
