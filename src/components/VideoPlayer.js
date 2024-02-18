@@ -252,24 +252,6 @@ function VideoPlayer({
     setVideoLoading(false);
   }, [videoRef.current]);
 
-  const updateVideoSize = () => {
-    if (videoRef.current) {
-      document.body.style.setProperty(
-        "--video-height-container",
-        `${videoRef.current.offsetHeight}px`
-      );
-    }
-  };
-
-  useEffect(() => {
-    const throttledUpdateLayout = throttle(updateVideoSize, 100);
-    updateVideoSize();
-    window.addEventListener("resize", throttledUpdateLayout);
-    return () => {
-      window.removeEventListener("resize", throttledUpdateLayout);
-    };
-  }, []);
-
   useEffect(() => {
     let timeOut = null;
     if (videoEnded) {
@@ -286,10 +268,6 @@ function VideoPlayer({
   useEffect(() => {
     const videoPlayer = videoRef.current;
     if (videoPlayer) {
-      document.body.style.setProperty(
-        "--video-height-container",
-        `${videoPlayer.offsetHeight}px`
-      );
       setVideoPlayBackRate(DEFAULT_PLAYBACK_SPEED);
       videoPlayer.addEventListener("contextmenu", (e) => {
         e.preventDefault();
