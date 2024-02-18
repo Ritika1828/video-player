@@ -8,7 +8,7 @@ html {
   body {
     height: 100%;
   }
-  #app{
+  #root{
     height: 100%;
   }
 :root {
@@ -16,7 +16,7 @@ html {
 }
 
 .videoPlaylistContainer{
-    height: var(--video-height-container)!important;
+    height: var(--video-height-container);
 }
 
 @media only screen and (max-width: 1024px)   {
