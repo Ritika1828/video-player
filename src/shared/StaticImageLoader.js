@@ -6,11 +6,12 @@ function StaticImageLoader({ loading='lazy', source='rigiLogo', width = '', heig
 
     return (
         <>
+        <div></div>
             <picture>
-                <source srcSet={require('../../public/webp/rigiLogo.webp')} type="image/webp" />
+                <source srcSet={require(`../images/webp/${source}.webp`)} type="image/webp" />
                 <img
                     loading={loading}
-                    src={require('../../public/png/rigiLogo.png')}
+                    src={require(`../images/png/${source}.png`)}
                     width={width}
                     height={height}
                     alt={`${source}`}
