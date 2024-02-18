@@ -344,7 +344,6 @@ function VideoPlayer({
   }, [showVideoControl, isMobile]);
 
   useEffect(() => {
-    console.log(videoVolume, "videoVolume");
     if (videoVolume != null) {
       localStorageSave("videoVolume", videoVolume);
     }

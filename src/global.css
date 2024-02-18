@@ -16,7 +16,7 @@ html {
 }
 
 .videoPlaylistContainer{
-    height: var(--video-height-container);
+    height: var(--video-height-container)!important;
 }
 
 @media only screen and (max-width: 1024px)   {
