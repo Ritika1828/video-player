@@ -12,7 +12,14 @@ html {
     height: 100%;
   }
 :root {
-    --video-height-container: 0px;
+    --video-height-container: calc(100vw * ( 9 / 16 ));
+
+}
+@media screen and (min-width :1024px) {
+    :root {
+        --video-height-container: calc((100vw * ( 3 / 8 )) - 12px);
+    
+    }
 }
 
 .videoPlaylistContainer{
