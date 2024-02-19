@@ -4,12 +4,20 @@ import PropTypes from 'prop-types'
 function Slider({ sliderPosition, progressBarPosition, silderbgColor, progressBarbgColor, getSliderMovedPercentage, getUpdatedStateOfSlider }) {
 
     const [isMouseDragged, setIsMouseDragged] = useState(false)
+    const [mousetochedCurrentPos, setMouseTouchedCurrentPos] = useState(0)
 
     /**
      * function used to set the current mouse condition on slider 
      * @param {*} e 
      */
     const handleContainerMouseDown = (e) => {
+        const { clientX, target } = e;
+        const rect = target.getBoundingClientRect();
+        const { clientWidth } = target;
+        console.log(clientX || e?.touches?.[0]?.clientX , e?.touches?.[0]?.clientX,rect.left, 'clientX || e?.touches?.[0]?.clientX')
+        let percent = Math.min(((clientX || e?.touches?.[0]?.clientX) - rect.left) * 100 / clientWidth, 100);
+        percent = percent <= 0 ? 0 : percent
+        setMouseTouchedCurrentPos(percent)
         setIsMouseDragged(true)
     }
 
@@ -19,7 +27,8 @@ function Slider({ sliderPosition, progressBarPosition, silderbgColor, progressBa
      */
     const handleContainerMouseUp = (e) => {
         setIsMouseDragged(false)
-        getUpdatedStateOfSlider && getUpdatedStateOfSlider()
+   
+        getUpdatedStateOfSlider && getUpdatedStateOfSlider(mousetochedCurrentPos)
     }
 
     /**
@@ -32,6 +41,7 @@ function Slider({ sliderPosition, progressBarPosition, silderbgColor, progressBa
         const { clientWidth } = target;
         let percent = Math.min(((clientX || e?.touches?.[0]?.clientX) - rect.left) * 100 / clientWidth, 100);
         percent = percent <= 0 ? 0 : percent
+        setMouseTouchedCurrentPos(percent)
         getSliderMovedPercentage &&  getSliderMovedPercentage(percent, isMouseDragged)
     }
 
