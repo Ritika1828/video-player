@@ -14,7 +14,6 @@ function Slider({ sliderPosition, progressBarPosition, silderbgColor, progressBa
         const { clientX, target } = e;
         const rect = target.getBoundingClientRect();
         const { clientWidth } = target;
-        console.log(clientX || e?.touches?.[0]?.clientX , e?.touches?.[0]?.clientX,rect.left, 'clientX || e?.touches?.[0]?.clientX')
         let percent = Math.min(((clientX || e?.touches?.[0]?.clientX) - rect.left) * 100 / clientWidth, 100);
         percent = percent <= 0 ? 0 : percent
         setMouseTouchedCurrentPos(percent)
