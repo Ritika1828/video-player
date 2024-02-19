@@ -106,12 +106,14 @@ function VideoPlayer({
   /**
    * function used to set the currentTime of video on mouseEnd
    */
-  const updateVideoCurrentTime = () => {
+  const updateVideoCurrentTime = (percent) => {
+    setSeekProgress(percent)
     if (videoRef.current) {
-      videoRef.current.play();
-      videoRef.current.currentTime = (seekProgress * totalVideoduration) / 100;
+      videoRef.current.play()
+      videoRef.current.currentTime = (percent * totalVideoduration) / 100
     }
-  };
+  }
+
 
   /**
    * function used to handle the video loading state
