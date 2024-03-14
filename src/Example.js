@@ -1,6 +1,6 @@
 import BookASlot from "@whjr-engg/book-a-slot/lib/cjs/index";
 import "@whjr-engg/book-a-slot/lib/cjs/index.css";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 
 function Example() {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -8,12 +8,18 @@ function Example() {
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
+  const [token, setToken] = useState('')
 
   const handleClick = () => {
     setIsModalOpen(true);
   };
   const modalCloseCallback = () => {
-    setIsModalOpen(false);
+    // setIsModalOpen(false);
+    window.parent.postMessage('close', "*");
+    window.parent.postMessage(JSON.stringify({
+      close:true
+    }), "*");
+
   };
 
   const handleExploreBtnClick = (token) => {
@@ -41,8 +47,23 @@ const handleGetJWTToken = (payload) => {
     console.log("payloadd", payload?.token);
     // setToken(payload?.token);
     localStorage.setItem("tokenn", payload?.token);
-    window.parent.postMessage({token:payload?.token}, "*");
+    window.parent.postMessage(JSON.stringify({
+      token:payload?.token
+    }), "*");
   };
+
+  useEffect(()=>{
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams, 'urlParams')
+    const token = urlParams.get('token');
+    console.log(token, 'urlParams')
+
+    setToken(token)
+  },[])
+
+
+
+
 
   return (
     <div>
@@ -58,6 +79,7 @@ const handleGetJWTToken = (payload) => {
           handleExploreBtnClick={handleExploreBtnClick}
           handleInstantTrialCallback={handleInstantTrialCallback}
           handleGetJWTToken={handleGetJWTToken}
+          userToken={token}
         />
       ) : null}
     </div>
