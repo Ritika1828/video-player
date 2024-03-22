@@ -12,23 +12,23 @@ function Example() {
   };
   const [token, setToken] = useState("");
 
-  console.log('widthdesktop',isDesktop)
+  console.log('window?.screen?.width',isDesktop)
 
   const handleClick = () => {
     setIsModalOpen(true);
   };
   function handleResize() {
-    console.log('widthhh',window?.parent?.innerWidth, window?.top?.innerWidth, window?.innerWidth)
-    // if (window.top.innerWidth < 768) {
-    //   setIsDesktop(false);
-    // } else {
-    //   setIsDesktop(true);
-    // }
+    console.log(window?.screen?.availWidth, window?.innerWidth, window?.screen?.width, 'window?.screen?.width')
+    if (window?.innerWidth >= 550 &&  window?.innerWidth <= 650 &&  window?.screen?.width >= 768) {
+      setIsDesktop(true);
+    } else {
+      setIsDesktop(false);
+    }
   }
 
   useEffect(() => {
     handleResize();
-    window.top.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize);
   }, []);
   const modalCloseCallback = () => {
     // setIsModalOpen(false);
