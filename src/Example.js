@@ -6,14 +6,30 @@ import globalTrackEvent from "./utils/globalTrackEvents";
 function Example() {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [isCloseBtn, setIsCloseBtn] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(false);
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
   const [token, setToken] = useState("");
 
+  console.log('widthdesktop',isDesktop)
+
   const handleClick = () => {
     setIsModalOpen(true);
   };
+  function handleResize() {
+    console.log('widthhh',window?.parent?.innerWidth, window?.top?.innerWidth, window?.innerWidth)
+    // if (window.top.innerWidth < 768) {
+    //   setIsDesktop(false);
+    // } else {
+    //   setIsDesktop(true);
+    // }
+  }
+
+  useEffect(() => {
+    handleResize();
+    window.top.addEventListener("resize", handleResize);
+  }, []);
   const modalCloseCallback = () => {
     // setIsModalOpen(false);
     window.parent.postMessage("close", "*");
@@ -94,6 +110,7 @@ function Example() {
           handleGetJWTToken={handleGetJWTToken}
           handleAmplitudeEvent={handleAmplitudeEvent}
           userToken={token}
+          isDesktop={isDesktop}
         />
       ) : null}
     </div>
