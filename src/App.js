@@ -12,9 +12,9 @@ function App() {
   },[])
   return (
     <Layout>
-      <Example/>
-      {/* <Header />
-      <VideoContentBody /> */}
+      {/* <Example/> */}
+      <Header />
+      <VideoContentBody />
     </Layout>
   );
 }
